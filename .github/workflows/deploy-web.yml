@@ -24,6 +24,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Generate logo icons
+        run: |
+          python -m pip install cairosvg==2.8.2
+          python scripts/generate-icons.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: redy-icons
+          path: assets/images/*.png
       - run: npm run lint
       - run: npx tsc --noEmit
       - name: Export web
