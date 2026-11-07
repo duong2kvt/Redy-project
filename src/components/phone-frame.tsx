@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { useApp } from '@/store/app-store';
@@ -20,19 +20,17 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
   if (!framed) return <>{children}</>;
 
   const scale = Math.min(1, (height - 48) / 860);
-  const panelWidth = Math.min(280, (width - 399 * scale) / 2 - 56);
-  const compact = panelWidth < 180;
   return (
     <View style={styles.stage}>
-      <View style={[styles.device, { transform: [{ scale }] }]}>
-        <View style={styles.screen} testID="device-screen">
-          <FrameInsetsContext.Provider value={{ top: 44, bottom: 34 }}>{children}</FrameInsetsContext.Provider>
-          <FakeStatusBar />
-          <View pointerEvents="none" style={styles.homeIndicator} />
+      <View style={[styles.row, { transform: [{ scale }] }]}>
+        <DemoPanel />
+        <View style={styles.device}>
+          <View style={styles.screen} testID="device-screen">
+            <FrameInsetsContext.Provider value={{ top: 44, bottom: 34 }}>{children}</FrameInsetsContext.Provider>
+            <FakeStatusBar />
+            <View pointerEvents="none" style={styles.homeIndicator} />
+          </View>
         </View>
-      </View>
-      <View style={[styles.panelAnchor, { width: compact ? 128 : panelWidth }]}>
-        <DemoPanel compact={compact} maxHeight={height - 48} />
       </View>
     </View>
   );
@@ -71,28 +69,14 @@ const flows = [
   { label: '3 · Buy item', sub: 'Home (after log) → store → Viking hat', href: '/home?demo=afterLog' as const },
 ];
 
-function DemoPanel({ compact, maxHeight }: { compact: boolean; maxHeight: number }) {
+function DemoPanel() {
   const [hover, setHover] = useState<number | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const reset = useApp((s) => s.reset);
   const set = useApp((s) => s.set);
   return (
-    <View>
-      {compact && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Toggle prototype flows"
-          accessibilityState={{ expanded }}
-          onPress={() => setExpanded(!expanded)}
-          style={styles.flowToggle}>
-          <Text style={styles.flowLabel}>{expanded ? 'Close flows ×' : 'View flows ☰'}</Text>
-        </Pressable>
-      )}
-      {(!compact || expanded) && (
-      <ScrollView style={[{ maxHeight: compact ? maxHeight - 54 : maxHeight }, compact && styles.compactPanel]}>
-      <View style={styles.panel}>
+    <View style={styles.panel}>
       <Text style={styles.brand}>Redy</Text>
-      <Text style={styles.tagline}>Interactive product demo</Text>
+      <Text style={styles.tagline}>Interactive product demo · Expo SDK 58 · React Native 0.88</Text>
       <Text style={styles.section}>Prototype flows</Text>
       {flows.map((f, i) => (
         <Pressable
@@ -100,7 +84,6 @@ function DemoPanel({ compact, maxHeight }: { compact: boolean; maxHeight: number
           onHoverIn={() => setHover(i)}
           onHoverOut={() => setHover(null)}
           onPress={() => {
-            setExpanded(false);
             reset();
             if (i === 2) {
               set({
@@ -134,18 +117,13 @@ function DemoPanel({ compact, maxHeight }: { compact: boolean; maxHeight: number
         Tip: everything is tappable — pickers scroll, cards select, the + button opens the quick-log menu and the store
         icon opens the pet shop.
       </Text>
-      </View>
-      </ScrollView>
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   stage: { flex: 1, backgroundColor: '#EFE9E6', alignItems: 'center', justifyContent: 'center' },
-  panelAnchor: { position: 'absolute', top: 24, left: 24, zIndex: 2 },
-  flowToggle: { padding: 12, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: palette.gray200 },
-  compactPanel: { position: 'absolute', top: 54, width: 280, backgroundColor: '#EFE9E6', padding: 16, borderRadius: 20 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 48 },
   device: {
     width: 375 + 24,
     height: 812 + 24,
@@ -181,7 +159,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#121212',
   },
-  panel: { gap: 10, paddingBottom: 8 },
+  panel: { width: 280, gap: 10 },
   brand: { fontFamily: fonts.displayBold, fontSize: 44, color: palette.tomato500 },
   tagline: { fontFamily: fonts.regular, fontSize: 13, color: palette.gray600, marginBottom: 12 },
   section: {
