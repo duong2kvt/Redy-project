@@ -45,8 +45,7 @@ Mỗi chuyển cảnh và trigger trong prototype được map sang code:
 - **SMART_ANIMATE** → animation thuộc tính bằng Reanimated (thanh progress, slider tốc độ, sheet, popup…).
 - **AFTER_TIMEOUT** → chuỗi tự động: scanning loop 0.8 s, reward (0.8 s → thanh đầy 600 ms → +3 coin 400 ms → nút Next), toast mua hàng.
 - **"Hoping anim"** (Sneaky Default ⇄ Move, 1 s delay, 600 ms ease-out) → linh vật ló lên khỏi hố ở màn nhập tên.
-- **Video linh vật nhảy ra** (trang Draft) → dựng lại bằng squash & stretch + vòng sóng (`src/components/mascot-intro.tsx`).
-  Có thể thay bằng file MP4 gốc: xem `src/components/mascot-video.ts` (expo-video đã cài sẵn).
+- **Motion appear** (màn "Let’s meet your virtual pet") → dùng đúng motion gốc của designer, đã chuyển sang animated WebP nền trong suốt (`assets/redy/mascot_appear.webp`). Chạy 1 lần rồi giữ khung cuối; chạm vào Redy để xem lại.
 - Thêm micro-interaction: haptics, nút nhún khi bấm, wheel picker có snap, số đếm tăng dần, vòng/gauge vẽ dần, lá rơi ở Home, chạm vào Redy để nó nhảy, navbar kính mờ, menu + xoay thành ×, sheet kéo xuống để đóng.
 
 ## Cấu trúc
