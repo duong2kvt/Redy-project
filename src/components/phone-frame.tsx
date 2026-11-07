@@ -8,27 +8,33 @@ import { fonts, palette } from '@/theme/tokens';
 
 import { FrameInsetsContext } from './ui/primitives';
 
+const PREVIEW_WIDTH = 280 + 48 + 399;
+const PREVIEW_HEIGHT = 836;
+
 /**
  * On web (desktop) the app is presented inside an iPhone-sized device
  * (375×812, the Figma artboard) with a simulated status bar & home indicator,
- * plus a side panel to jump into each prototype flow.
+ * plus a side panel to jump into each prototype flow. Short laptop windows
+ * keep this layout and scale it to fit instead of switching to mobile mode.
  * On native — and on phone-sized browsers — it renders full-screen.
  */
 export function PhoneFrame({ children }: { children: ReactNode }) {
   const { width, height } = useWindowDimensions();
-  const framed = Platform.OS === 'web' && width >= 720 && height >= 700;
+  const framed = Platform.OS === 'web' && width >= 720;
   if (!framed) return <>{children}</>;
 
-  const scale = Math.min(1, (height - 48) / 860);
+  const scale = Math.min(1, (height - 48) / 860, (width - 48) / PREVIEW_WIDTH);
   return (
     <View style={styles.stage}>
-      <View style={[styles.row, { transform: [{ scale }] }]}>
-        <DemoPanel />
-        <View style={styles.device}>
-          <View style={styles.screen} testID="device-screen">
-            <FrameInsetsContext.Provider value={{ top: 44, bottom: 34 }}>{children}</FrameInsetsContext.Provider>
-            <FakeStatusBar />
-            <View pointerEvents="none" style={styles.homeIndicator} />
+      <View style={{ width: PREVIEW_WIDTH * scale, height: PREVIEW_HEIGHT * scale }}>
+        <View style={[styles.row, { transform: [{ scale }] }]}>
+          <DemoPanel />
+          <View style={styles.device}>
+            <View style={styles.screen} testID="device-screen">
+              <FrameInsetsContext.Provider value={{ top: 44, bottom: 34 }}>{children}</FrameInsetsContext.Provider>
+              <FakeStatusBar />
+              <View pointerEvents="none" style={styles.homeIndicator} />
+            </View>
           </View>
         </View>
       </View>
@@ -122,8 +128,18 @@ function DemoPanel() {
 }
 
 const styles = StyleSheet.create({
-  stage: { flex: 1, backgroundColor: '#EFE9E6', alignItems: 'center', justifyContent: 'center' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 48 },
+  stage: { flex: 1, backgroundColor: '#EFE9E6', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  row: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: PREVIEW_WIDTH,
+    height: PREVIEW_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 48,
+    transformOrigin: 'top left',
+  },
   device: {
     width: 375 + 24,
     height: 812 + 24,
