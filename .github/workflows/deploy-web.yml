@@ -24,6 +24,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Preserve mascot outlines
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install pillow numpy scipy
+          python scripts/prepare-mascot.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mascot-animation
+          path: |
+            assets/redy/mascot_appear.webp
+            public/qa/mascot/*.png
       - name: Generate logo icons
         run: |
           python -m pip install cairosvg==2.8.2
