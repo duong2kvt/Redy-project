@@ -1,4 +1,3 @@
-import { Fredoka_500Medium, Fredoka_600SemiBold } from '@expo-google-fonts/fredoka';
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -20,8 +19,10 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [loaded] = useFonts({
-    Fredoka_500Medium,
-    Fredoka_600SemiBold,
+    'SKSeren-Medium': require('@/assets/fonts/SKSeren-Medium.ttf'),
+    'SKSeren-SemiBold': require('@/assets/fonts/SKSeren-SemiBold.ttf'),
+    'SKSeren-Bold': require('@/assets/fonts/SKSeren-Bold.ttf'),
+    'SKSeren-ExtraBold': require('@/assets/fonts/SKSeren-ExtraBold.ttf'),
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,

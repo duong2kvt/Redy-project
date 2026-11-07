@@ -114,13 +114,14 @@ export const radius = {
 } as const;
 
 /**
- * Display font in Figma is "SK Seren" (commercial, not redistributable).
- * Fredoka is the closest open-licence match; swap `fonts.display*` if you
- * own an SK Seren licence (drop the .ttf files in assets/fonts).
+ * Headlines use "SK Seren" (assets/fonts), body text uses Poppins —
+ * same as the Figma text styles (Display * / Text *).
  */
 export const fonts = {
-  displaySemi: 'Fredoka_500Medium',
-  displayBold: 'Fredoka_600SemiBold',
+  displayMedium: 'SKSeren-Medium',
+  displaySemi: 'SKSeren-SemiBold',
+  displayBold: 'SKSeren-Bold',
+  displayExtraBold: 'SKSeren-ExtraBold',
   regular: 'Poppins_400Regular',
   medium: 'Poppins_500Medium',
   semibold: 'Poppins_600SemiBold',

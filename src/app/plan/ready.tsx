@@ -7,7 +7,7 @@ import { Ring } from '@/components/ui/effects';
 import { ProgressBar, Txt, fmt, useCountUp } from '@/components/ui/primitives';
 import { Footer, Header, Screen } from '@/components/ui/screen';
 import { useApp } from '@/store/app-store';
-import { colors, palette, radius } from '@/theme/tokens';
+import { colors, fonts, palette, radius } from '@/theme/tokens';
 
 /** Frame "overview user's health" in Personalize (5004:11188) — "Your plan is ready". */
 export default function PlanReady() {
@@ -141,7 +141,7 @@ function Macro({ dot, label, value }: { dot: string; label: string; value: numbe
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
         <Txt v="displaySm">{Math.round(v)}</Txt>
-        <Txt v="display2xs" color={palette.gray400} style={{ fontFamily: 'Fredoka_600SemiBold' }}>
+        <Txt v="display2xs" color={palette.gray400} style={{ fontFamily: fonts.displaySemi }}>
           g
         </Txt>
       </View>

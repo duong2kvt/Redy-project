@@ -71,7 +71,7 @@ scripts/figma-assets.* # xuất lại ảnh @2x/@3x từ Figma
 
 ## Ghi chú
 
-- **Font**: Figma dùng *SK Seren* (font thương mại, không được phân phối kèm). App dùng **Fredoka** (Google Fonts, gần giống nhất). Nếu có license SK Seren, thêm file .ttf và đổi `fonts.display*` trong `src/theme/tokens.ts`.
+- **Font**: headline dùng **SK Seren** (`assets/fonts`, khai báo trong `src/app/_layout.tsx`), nội dung dùng **Poppins**, khớp với text style trong Figma. Lưu ý license của SK Seren khi phát hành app.
 - **Ảnh độ phân giải cao**: ảnh trong `assets/redy` đang ở mật độ 1x (đúng kích thước artboard). Để ảnh sắc nét trên màn hình Retina, tạo token Figma rồi chạy
   `FIGMA_TOKEN=figd_xxx npm run assets:hd`. Script sẽ tạo `@2x`/`@3x` cạnh file gốc và React Native tự chọn bản phù hợp.
 - Camera và AI nhận diện món ăn đang được mô phỏng bằng ảnh trong design. Có thể nối `expo-camera` và API nhận diện thật sau.
