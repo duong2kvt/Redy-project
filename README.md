@@ -1,56 +1,77 @@
-# Welcome to your Expo app 👋
+# Redy 🦊 — healthy eating with your virtual pet
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Ứng dụng di động được dựng từ file Figma **DUA_B1U25 – Dương Vy Quyên (Final)** và **Redy Design System**.
+Mã nguồn dùng **Expo SDK 58 · React Native 0.88 · React 19 · Expo Router · Reanimated 4**, chạy trên iOS, Android và Web từ cùng một codebase.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Chạy thử
 
 ```bash
-npm run reset-project
+npm install
+npx expo start          # quét QR bằng app Expo Go (iOS/Android) để chạy trên điện thoại thật
+npm run web             # bản web: hiển thị trong khung iPhone + bảng chọn 3 flow prototype
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Kiểm tra:
 
-### Other setup steps
+```bash
+npm run typecheck && npm run lint
+npm run build:web       # xuất bản web tĩnh vào dist/
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Đưa lên GitHub
 
-## Learn more
+```bash
+git remote add origin https://github.com/duong2kvt/Redy-project.git
+git push -u origin main
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Repo có sẵn workflow `.github/workflows/deploy-web.yml`. Sau khi push, vào **Settings → Pages → Source: GitHub Actions**: mỗi lần push lên `main`, bản demo web sẽ được build và deploy tự động tại `https://duong2kvt.github.io/Redy-project/`.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Để build app native (cài lên máy thật / TestFlight / Play Store): `npx eas-cli@latest build --profile preview`.
 
-## Join the community
+## Các flow (theo 3 prototype trong Figma)
 
-Join our community of developers creating universal apps.
+| Flow | Màn hình |
+| --- | --- |
+| **1 · Onboarding** | intro → walkthrough (3 slide) → meet pet → nhập tên → setup goals (giới tính, năm sinh, chiều cao, cân nặng, mức vận động, BMI, cân nặng mục tiêu, tốc độ) → eating habits (chế độ ăn, số bữa, nơi ăn, dị ứng, thói quen muốn đổi) → personalize (plan, loading, plan ready) |
+| **2 · Log meal + reward** | Home → nút **+** → Log meal → camera → AI scanning → bottom sheet nguyên liệu → chi tiết món → reward huy hiệu +3 coin → streak → Home sau khi log |
+| **3 · Buy item** | Home → cửa hàng → tab Hat → Viking Hat → Buy now → toast "Purchase success" → nón rơi xuống đầu Redy |
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Motion & interaction
+
+Mỗi chuyển cảnh và trigger trong prototype được map sang code:
+
+- **DISSOLVE 300 ms** → fade giữa các màn hình (`Screen` + Stack `animation: 'fade'`).
+- **SMART_ANIMATE** → animation thuộc tính bằng Reanimated (thanh progress, slider tốc độ, sheet, popup…).
+- **AFTER_TIMEOUT** → chuỗi tự động: scanning loop 0.8 s, reward (0.8 s → thanh đầy 600 ms → +3 coin 400 ms → nút Next), toast mua hàng.
+- **"Hoping anim"** (Sneaky Default ⇄ Move, 1 s delay, 600 ms ease-out) → linh vật ló lên khỏi hố ở màn nhập tên.
+- **Video linh vật nhảy ra** (trang Draft) → dựng lại bằng squash & stretch + vòng sóng (`src/components/mascot-intro.tsx`).
+  Có thể thay bằng file MP4 gốc: xem `src/components/mascot-video.ts` (expo-video đã cài sẵn).
+- Thêm micro-interaction: haptics, nút nhún khi bấm, wheel picker có snap, số đếm tăng dần, vòng/gauge vẽ dần, lá rơi ở Home, chạm vào Redy để nó nhảy, navbar kính mờ, menu + xoay thành ×, sheet kéo xuống để đóng.
+
+## Cấu trúc
+
+```
+src/
+  app/                 # mỗi file = 1 màn hình (Expo Router)
+    index.tsx          # intro
+    onboarding/ goals/ habits/ plan/ log/
+    home.tsx reward.tsx streak.tsx
+  components/
+    ui/                # primitives, Screen/Header/Footer, câu hỏi, wheel picker, ring/gauge
+    home/              # hero scene, cards, navbar, store sheet
+    icons/duotone.ts   # icon duotone xuất SVG từ Figma
+    phone-frame.tsx    # khung iPhone + bảng chọn flow cho bản web
+  store/app-store.ts   # state (zustand): hồ sơ, bữa ăn, nước, coin, streak, đồ của pet
+  theme/tokens.ts      # token từ Redy Design System (màu, spacing, radius, typography, shadow, motion)
+  theme/assets.ts      # danh sách ảnh xuất từ Figma
+assets/redy/           # minh hoạ xuất từ Figma
+scripts/figma-assets.* # xuất lại ảnh @2x/@3x từ Figma
+```
+
+## Ghi chú
+
+- **Font**: Figma dùng *SK Seren* (font thương mại, không được phân phối kèm). App dùng **Fredoka** (Google Fonts, gần giống nhất). Nếu có license SK Seren, thêm file .ttf và đổi `fonts.display*` trong `src/theme/tokens.ts`.
+- **Ảnh độ phân giải cao**: ảnh trong `assets/redy` đang ở mật độ 1x (đúng kích thước artboard). Để ảnh sắc nét trên màn hình Retina, tạo token Figma rồi chạy
+  `FIGMA_TOKEN=figd_xxx npm run assets:hd`. Script sẽ tạo `@2x`/`@3x` cạnh file gốc và React Native tự chọn bản phù hợp.
+- Camera và AI nhận diện món ăn đang được mô phỏng bằng ảnh trong design. Có thể nối `expo-camera` và API nhận diện thật sau.
