@@ -31,7 +31,7 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
           <View pointerEvents="none" style={styles.homeIndicator} />
         </View>
       </View>
-      <View style={[styles.panelAnchor, { width: compact ? 160 : panelWidth }]}>
+      <View style={[styles.panelAnchor, { width: compact ? 128 : panelWidth }]}>
         <DemoPanel compact={compact} maxHeight={height - 48} />
       </View>
     </View>
