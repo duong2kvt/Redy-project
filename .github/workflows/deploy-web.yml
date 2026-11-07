@@ -39,7 +39,10 @@ jobs:
         env:
           EXPO_BASE_URL: /${{ github.event.repository.name }}
       - name: SPA fallback
-        run: cp dist/index.html dist/404.html && touch dist/.nojekyll
+        run: |
+          node scripts/version-favicon.mjs
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
