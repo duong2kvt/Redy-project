@@ -135,11 +135,13 @@ export function Chip({
   on,
   onPress,
   index = 0,
+  disabled = false,
 }: {
   label: string | ReactNode;
   on: boolean;
   onPress: () => void;
   index?: number;
+  disabled?: boolean;
 }) {
   const sel = useSharedValue(on ? 1 : 0);
   useEffect(() => {
@@ -153,9 +155,20 @@ export function Chip({
       entering={FadeInDown.delay(60 + index * 35)
         .springify()
         .damping(15)}>
-      <PressableScale onPress={onPress} hapticStyle="select" scaleTo={0.92}>
-        <Animated.View style={[styles.chip, a]}>
-          {typeof label === 'string' ? <Txt v="textLgMedium">{label}</Txt> : label}
+      <PressableScale
+        onPress={onPress}
+        disabled={disabled}
+        hapticStyle="select"
+        scaleTo={0.92}
+        accessibilityState={{ selected: on, disabled }}>
+        <Animated.View style={[styles.chip, a, disabled && styles.chipDisabled]}>
+          {typeof label === 'string' ? (
+            <Txt v="textLgMedium" color={disabled ? palette.gray400 : palette.gray950}>
+              {label}
+            </Txt>
+          ) : (
+            label
+          )}
         </Animated.View>
       </PressableScale>
     </Animated.View>
@@ -291,6 +304,7 @@ export function WheelPicker({
 const noSelect = { userSelect: 'none' } as object;
 
 const styles = StyleSheet.create({
+  chipDisabled: { opacity: 0.45 },
   bubbleRow: { flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 18, gap: 8, minHeight: 112 },
   avatar: { width: 50, height: 50 },
   bubble: {

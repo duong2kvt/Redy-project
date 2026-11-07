@@ -2,6 +2,7 @@
 export const img = {
   avatarRedy: require('@/assets/redy/avatar_redy.png'),
   badge: require('@/assets/redy/badge.png'),
+  bgGarden: require('@/assets/redy/bg_garden.jpg'),
   cardCustomize: require('@/assets/redy/card_customize.png'),
   cardTrack: require('@/assets/redy/card_track.png'),
   clipboard: require('@/assets/redy/clipboard.png'),
@@ -38,10 +39,10 @@ export const img = {
   mealAvatars: require('@/assets/redy/meal_avatars.png'),
   sand: require('@/assets/redy/sand.png'),
   sky: require('@/assets/redy/sky.png'),
+  sneaky: require('@/assets/redy/sneaky.png'),
   starGlow: require('@/assets/redy/star_glow.png'),
   streakFlameDab: require('@/assets/redy/streak_flame_dab.png'),
   thumbBeach: require('@/assets/redy/thumb_beach.png'),
-  thumbGarden: require('@/assets/redy/thumb_garden.png'),
   thumbHome: require('@/assets/redy/thumb_home.png'),
   treesTop: require('@/assets/redy/trees_top.png'),
 } as const;
@@ -50,6 +51,7 @@ export const img = {
 export const imgSize = {
   avatarRedy: { w: 50, h: 50 },
   badge: { w: 96, h: 96 },
+  bgGarden: { w: 1125, h: 1125 },
   cardCustomize: { w: 310, h: 420 },
   cardTrack: { w: 222, h: 334 },
   clipboard: { w: 219, h: 316 },
@@ -86,10 +88,10 @@ export const imgSize = {
   mealAvatars: { w: 140, h: 52 },
   sand: { w: 257, h: 69 },
   sky: { w: 375, h: 263 },
+  sneaky: { w: 262, h: 220 },
   starGlow: { w: 375, h: 606 },
   streakFlameDab: { w: 247, h: 287 },
   thumbBeach: { w: 109, h: 109 },
-  thumbGarden: { w: 109, h: 109 },
   thumbHome: { w: 109, h: 109 },
   treesTop: { w: 375, h: 362 },
 } as const;

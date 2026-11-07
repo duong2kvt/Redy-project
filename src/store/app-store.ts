@@ -66,9 +66,10 @@ const initial = {
   pace: 0.5,
   diet: null,
   mealsPerDay: 3,
-  eatingContext: ['Cook at home', 'Oder delivery'],
-  allergies: ['Animal products', 'Seafood', 'Gluten'],
-  habitChanges: ['Reduce sugar intake', 'Stop binge eating', 'Eat more green & veggies'],
+  // multi-select answers start empty — nothing is pre-selected
+  eatingContext: [] as string[],
+  allergies: [] as string[],
+  habitChanges: [] as string[],
   dailyGoal: 2925,
   meals: [] as Meal[],
   waterGlasses: 0,

@@ -23,6 +23,7 @@ export default function ChangeHabits() {
       scroll
       progress={0.9}
       question="What would you like to change in your eating habits?"
+      nextDisabled={list.length === 0}
       onNext={() => router.push('/plan')}>
       <View style={{ gap: 16 }}>
         {options.map((o, i) => (

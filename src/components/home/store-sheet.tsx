@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
 import { Ban, CircleCheck, Lock, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
   FadeIn,
-  FadeInDown,
   FadeOut,
+  interpolateColor,
   runOnJS,
   SlideInDown,
   SlideInUp,
@@ -23,7 +24,7 @@ import Animated, {
 import { Button, PressableScale, Txt, haptic, useInsets } from '@/components/ui/primitives';
 import { useApp, type BackgroundId, type HatId } from '@/store/app-store';
 import { img } from '@/theme/assets';
-import { colors, palette, radius } from '@/theme/tokens';
+import { colors, palette, radius, type } from '@/theme/tokens';
 
 import { HERO_H } from './hero';
 
@@ -42,7 +43,7 @@ type Item = {
 const ITEMS: Record<Tab, Item[]> = {
   Background: [
     { id: 'bg-home', kind: 'bg', ref: 'home', image: img.thumbHome },
-    { id: 'bg-garden', kind: 'bg', ref: 'garden', image: img.thumbGarden },
+    { id: 'bg-garden', kind: 'bg', ref: 'garden', image: img.bgGarden },
     ...Array.from({ length: 10 }, (_, i) => ({
       id: `bg-l${i}`,
       kind: 'locked' as const,
@@ -106,60 +107,65 @@ export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBough
           </View>
         </GestureDetector>
         <Tabs tab={tab} onTab={setTab} />
-        <ScrollView
-          contentContainerStyle={[styles.grid, { paddingBottom: insets.bottom + 24 }]}
-          showsVerticalScrollIndicator={false}>
-          {ITEMS[tab].length === 0 && (
-            <Txt v="textMd" color={palette.gray400} center style={{ width: '100%', marginTop: 40 }}>
-              New {tab.toLowerCase()}s are coming soon ✨
-            </Txt>
-          )}
-          {ITEMS[tab].map((it, i) => {
-            const selected = isSelected(it);
-            const locked = !isOwned(it);
-            return (
-              <Animated.View
-                key={it.id}
-                entering={FadeInDown.delay(i * 30)
-                  .springify()
-                  .damping(16)}>
-                <PressableScale onPress={() => onItem(it)} hapticStyle="select" scaleTo={0.94}>
-                  <View
-                    style={[
-                      styles.tile,
-                      it.kind === 'hat' && {
-                        backgroundColor: locked ? palette.gray300 : '#fff',
-                        borderColor: palette.gray200,
-                        borderWidth: 2,
-                      },
-                      it.kind === 'hat' && it.ref === 'none' && { backgroundColor: palette.gray50 },
-                      selected && { borderColor: palette.leaf500, borderWidth: 2 },
-                      it.kind === 'locked' && { backgroundColor: palette.gray300 },
-                    ]}>
-                    {it.ref === 'none' ? (
-                      <Ban size={48} color={palette.gray950} strokeWidth={2.4} />
-                    ) : (
-                      <Image
-                        source={it.image}
-                        style={
-                          it.kind === 'bg' || (it.kind === 'locked' && tab === 'Background')
-                            ? StyleSheet.absoluteFill
-                            : { width: 79, height: 61 }
-                        }
-                        contentFit={it.kind === 'bg' || tab === 'Background' ? 'cover' : 'contain'}
-                      />
-                    )}
-                    {locked && (
-                      <View style={styles.lock}>
-                        <Lock size={11} color={palette.gray500} strokeWidth={2.5} />
+        {/* Tab content DISSOLVES (300 ms linear) — old grid fades out while the new one fades in */}
+        <View style={{ flex: 1 }}>
+          <Animated.View
+            key={tab}
+            entering={FadeIn.duration(300).easing(Easing.linear)}
+            exiting={FadeOut.duration(300).easing(Easing.linear)}
+            style={StyleSheet.absoluteFill}>
+            <ScrollView
+              contentContainerStyle={[styles.grid, { paddingBottom: insets.bottom + 24 }]}
+              showsVerticalScrollIndicator={false}>
+              {ITEMS[tab].length === 0 && (
+                <Txt v="textMd" color={palette.gray400} center style={{ width: '100%', marginTop: 40 }}>
+                  New {tab.toLowerCase()}s are coming soon ✨
+                </Txt>
+              )}
+              {ITEMS[tab].map((it, i) => {
+                const selected = isSelected(it);
+                const locked = !isOwned(it);
+                return (
+                  <View key={it.id}>
+                    <PressableScale onPress={() => onItem(it)} hapticStyle="select" scaleTo={0.94}>
+                      <View
+                        style={[
+                          styles.tile,
+                          it.kind === 'hat' && {
+                            backgroundColor: locked ? palette.gray300 : '#fff',
+                            borderColor: palette.gray200,
+                            borderWidth: 2,
+                          },
+                          it.kind === 'hat' && it.ref === 'none' && { backgroundColor: palette.gray50 },
+                          selected && { borderColor: palette.leaf500, borderWidth: 2 },
+                          it.kind === 'locked' && { backgroundColor: palette.gray300 },
+                        ]}>
+                        {it.ref === 'none' ? (
+                          <Ban size={48} color={palette.gray950} strokeWidth={2.4} />
+                        ) : (
+                          <Image
+                            source={it.image}
+                            style={
+                              it.kind === 'bg' || (it.kind === 'locked' && tab === 'Background')
+                                ? StyleSheet.absoluteFill
+                                : { width: 79, height: 61 }
+                            }
+                            contentFit={it.kind === 'bg' || tab === 'Background' ? 'cover' : 'contain'}
+                          />
+                        )}
+                        {locked && (
+                          <View style={styles.lock}>
+                            <Lock size={11} color={palette.gray500} strokeWidth={2.5} />
+                          </View>
+                        )}
                       </View>
-                    )}
+                    </PressableScale>
                   </View>
-                </PressableScale>
-              </Animated.View>
-            );
-          })}
-        </ScrollView>
+                );
+              })}
+            </ScrollView>
+          </Animated.View>
+        </View>
       </Animated.View>
 
       {buying && (
@@ -182,43 +188,48 @@ export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBough
   );
 }
 
+/**
+ * Segmented tab bar. Matches the prototype: the black pill does not slide —
+ * the old pill dissolves out while the new one dissolves in (300 ms linear),
+ * and the label colours cross-fade with it.
+ */
 function Tabs({ tab, onTab }: { tab: Tab; onTab: (t: Tab) => void }) {
-  const [layouts, setLayouts] = useState<Record<string, { x: number; w: number }>>({});
-  const x = useSharedValue(0);
-  const w = useSharedValue(0);
-  useEffect(() => {
-    const l = layouts[tab];
-    if (!l) return;
-    if (w.value === 0) {
-      x.set(l.x);
-      w.set(l.w);
-    } else {
-      x.set(withSpring(l.x, { damping: 18, stiffness: 220 }));
-      w.set(withSpring(l.w, { damping: 18, stiffness: 220 }));
-    }
-  }, [tab, layouts, w, x]);
-  const pill = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }], width: w.value }));
   return (
     <View style={styles.tabs}>
-      <Animated.View style={[styles.pill, pill]} />
       {TABS.map((t) => (
-        <Pressable
+        <TabItem
           key={t}
-          onLayout={(e: LayoutChangeEvent) => {
-            const { x: lx, width } = e.nativeEvent.layout;
-            setLayouts((p) => ({ ...p, [t]: { x: lx, w: width } }));
-          }}
+          label={t}
+          active={tab === t}
           onPress={() => {
+            if (t === tab) return;
             haptic.select();
             onTab(t);
           }}
-          style={[styles.tab, t === 'Background' && { paddingHorizontal: 16 }]}>
-          <Txt v="textLgSemi" color={tab === t ? '#fff' : palette.gray400}>
-            {t}
-          </Txt>
-        </Pressable>
+        />
       ))}
     </View>
+  );
+}
+
+function TabItem({ label, active, onPress }: { label: Tab; active: boolean; onPress: () => void }) {
+  const p = useSharedValue(active ? 1 : 0);
+  useEffect(() => {
+    p.set(withTiming(active ? 1 : 0, { duration: 300, easing: Easing.linear }));
+  }, [active, p]);
+  const pill = useAnimatedStyle(() => ({ opacity: p.value }));
+  const text = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [palette.gray400, '#ffffff']) }));
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      style={[styles.tab, label === 'Background' && { paddingHorizontal: 16 }]}>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.pill, pill]} />
+      <Animated.Text allowFontScaling={false} style={[type.textLgSemi, text]}>
+        {label}
+      </Animated.Text>
+    </Pressable>
   );
 }
 
@@ -335,7 +346,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 4,
   },
-  pill: { position: 'absolute', top: 4, height: 36, borderRadius: radius.full, backgroundColor: palette.gray950 },
+  pill: { borderRadius: radius.full, backgroundColor: palette.gray950 },
   tab: { height: 36, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingTop: 16 },
   tile: {

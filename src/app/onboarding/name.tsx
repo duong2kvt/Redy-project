@@ -1,20 +1,10 @@
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pencil } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
-import Animated, {
-  Easing,
-  FadeIn,
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
+import { SneakyHole } from '@/components/sneaky-hole';
 import { Button, Txt } from '@/components/ui/primitives';
 import { Header, Screen } from '@/components/ui/screen';
 import { useApp } from '@/store/app-store';
@@ -33,20 +23,6 @@ export default function TypeName() {
   const [focused, setFocused] = useState(false);
   const input = useRef<React.ComponentRef<typeof TextInput>>(null);
 
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.set(
-      withRepeat(
-        withSequence(
-          withDelay(1000, withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })),
-          withDelay(1000, withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })),
-        ),
-        -1,
-      ),
-    );
-  }, [t]);
-  const moveStyle = useAnimatedStyle(() => ({ opacity: t.value }));
-  const peekStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -6 * t.value }] }));
 
   const filled = name.trim().length > 0;
   const submit = () => {
@@ -92,12 +68,7 @@ export default function TypeName() {
         </Animated.View>
 
         <View style={styles.holeWrap}>
-          <Animated.View style={peekStyle}>
-            <Image source={img.holeDefault} style={styles.hole} />
-            <Animated.View style={[StyleSheet.absoluteFill, moveStyle]}>
-              <Image source={img.holeMove} style={styles.hole} />
-            </Animated.View>
-          </Animated.View>
+          <SneakyHole source={img.sneaky} />
         </View>
 
         <View style={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
@@ -129,5 +100,4 @@ const styles = StyleSheet.create({
     height: 40,
   },
   holeWrap: { alignItems: 'center', marginTop: 50 },
-  hole: { width: 273, height: 138 },
 });

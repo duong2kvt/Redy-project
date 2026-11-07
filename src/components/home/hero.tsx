@@ -90,7 +90,7 @@ export function HomeHero({ hatDrop = 0, jump: jumpSignal = 0 }: { hatDrop?: numb
         </>
       ) : (
         <Image
-          source={background === 'garden' ? img.thumbGarden : img.thumbBeach}
+          source={background === 'garden' ? img.bgGarden : img.thumbBeach}
           style={{ position: 'absolute', top: 0, left: 0, width: 375, height: 375 }}
           contentFit="cover"
         />

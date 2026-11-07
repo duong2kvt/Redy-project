@@ -9,6 +9,9 @@ import { Chip } from '@/components/ui/question';
 import { useApp } from '@/store/app-store';
 import { fonts, palette } from '@/theme/tokens';
 
+/** Exclusive option: picking it clears and disables every other chip. */
+const NONE = 'None';
+
 const BASE = [
   'All meat',
   'Animal products',
@@ -27,6 +30,8 @@ const BASE = [
 export default function Allergies() {
   const list = useApp((s) => s.allergies);
   const toggle = useApp((s) => s.toggleIn);
+  const set = useApp((s) => s.set);
+  const none = list.includes(NONE);
   const [extra, setExtra] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
@@ -46,6 +51,7 @@ export default function Allergies() {
     <QuestionScreen
       progress={0.75}
       question="Do you have any food restrictions or allergies?"
+      nextDisabled={list.length === 0}
       onNext={() => router.push('/habits/change')}>
       <Animated.View
         layout={LinearTransition.springify()}
@@ -57,8 +63,16 @@ export default function Allergies() {
           paddingHorizontal: 24,
           paddingTop: 40,
         }}>
+        <Chip index={0} label={NONE} on={none} onPress={() => set({ allergies: none ? [] : [NONE] })} />
         {all.map((a, i) => (
-          <Chip key={a} index={i} label={a} on={list.includes(a)} onPress={() => toggle('allergies', a)} />
+          <Chip
+            key={a}
+            index={i + 1}
+            label={a}
+            on={list.includes(a)}
+            disabled={none}
+            onPress={() => toggle('allergies', a)}
+          />
         ))}
         {adding ? (
           <Animated.View
@@ -89,9 +103,10 @@ export default function Allergies() {
           </Animated.View>
         ) : (
           <Chip
-            index={all.length}
-            label={<Plus size={22} color={palette.gray950} />}
+            index={all.length + 1}
+            label={<Plus size={22} color={none ? palette.gray400 : palette.gray950} />}
             on={false}
+            disabled={none}
             onPress={() => setAdding(true)}
           />
         )}
