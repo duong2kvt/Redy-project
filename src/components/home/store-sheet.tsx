@@ -1,8 +1,9 @@
 import { Image } from 'expo-image';
-import { Ban, CircleCheck, Lock, X } from 'lucide-react-native';
+import { Ban, CircleCheck, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Svg, { Path } from 'react-native-svg';
 import Animated, {
   Easing,
   FadeIn,
@@ -23,10 +24,25 @@ import Animated, {
 
 import { Button, PressableScale, Txt, haptic, useInsets } from '@/components/ui/primitives';
 import { useApp, type BackgroundId, type HatId } from '@/store/app-store';
+import { BACKGROUNDS, HATS } from '@/store/catalog';
 import { img } from '@/theme/assets';
 import { colors, palette, radius, type } from '@/theme/tokens';
 
 import { HERO_H } from './hero';
+
+/** Lock icon exported from Figma (store item "Lock", 16×16). */
+function LockIcon({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16">
+      <Path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M4.5 5.67071V3.5C4.5 2.39543 5.39543 1.5 6.5 1.5H9.5C10.6046 1.5 11.5 2.39543 11.5 3.5V5.67071C12.6652 6.08254 13.5 7.19378 13.5 8.5V11.5C13.5 13.1569 12.1569 14.5 10.5 14.5H5.5C3.84315 14.5 2.5 13.1569 2.5 11.5V8.5C2.5 7.19378 3.33481 6.08254 4.5 5.67071ZM6.5 2.5H9.5C10.0523 2.5 10.5 2.94772 10.5 3.5V5.5H5.5V3.5C5.5 2.94772 5.94772 2.5 6.5 2.5ZM8.69449 10.4725C8.63408 10.1704 8.74701 9.86806 8.85796 9.57103C8.89122 9.48198 8.92431 9.3934 8.95249 9.30546C8.98334 9.20917 9 9.10653 9 9C9 8.44772 8.55228 8 8 8C7.44772 8 7 8.44772 7 9C7 9.10653 7.01666 9.20917 7.04751 9.30546C7.07569 9.3934 7.10878 9.48197 7.14204 9.57102C7.25298 9.86805 7.36592 10.1704 7.30551 10.4725L7.19612 11.0194C7.09466 11.5267 7.48267 12 8 12C8.51733 12 8.90534 11.5267 8.80388 11.0194L8.69449 10.4725Z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
 
 const TABS = ['Background', 'Hat', 'Pant', 'Shoe'] as const;
 type Tab = (typeof TABS)[number];
@@ -41,39 +57,34 @@ type Item = {
 };
 
 const ITEMS: Record<Tab, Item[]> = {
-  Background: [
-    { id: 'bg-home', kind: 'bg', ref: 'home', image: img.thumbHome },
-    { id: 'bg-garden', kind: 'bg', ref: 'garden', image: img.bgGarden },
-    ...Array.from({ length: 10 }, (_, i) => ({
-      id: `bg-l${i}`,
-      kind: 'locked' as const,
-      image: img.thumbBeach,
-      price: 120,
-      name: 'Beach day',
-    })),
-  ],
-  Hat: [
-    { id: 'hat-none', kind: 'hat', ref: 'none' },
-    { id: 'hat-antlers', kind: 'hat', ref: 'antlers', image: img.hatAntlers },
-    { id: 'hat-viking', kind: 'hat', ref: 'viking', image: img.hatViking, price: 82, name: 'Viking Hat' },
-    ...Array.from({ length: 9 }, (_, i) => ({
-      id: `hat-l${i}`,
-      kind: 'locked' as const,
-      image: img.hatViking,
-      price: 82,
-      name: 'Viking Hat',
-    })),
-  ],
+  // every background from the catalog; "home" is owned by default, the rest are bought with coins
+  Background: BACKGROUNDS.map((b) => ({
+    id: `bg-${b.id}`,
+    kind: 'bg' as const,
+    ref: b.id,
+    image: b.image,
+    price: b.price,
+    name: b.name,
+  })),
+  // every hat from the catalog; "none" and "antlers" are owned by default, the rest are bought with coins
+  Hat: HATS.map((h) => ({
+    id: `hat-${h.id}`,
+    kind: 'hat' as const,
+    ref: h.id,
+    image: h.image,
+    price: h.price,
+    name: h.name,
+  })),
   Pant: [],
   Shoe: [],
 };
 
 /** Pet shop bottom sheet ("Home affter log" 5011:18353 / 5011:19214). */
-export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBought: () => void }) {
+export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBought: (kind: 'hat' | 'bg') => void }) {
   const insets = useInsets();
   const [tab, setTab] = useState<Tab>('Background');
   const [buying, setBuying] = useState<Item | null>(null);
-  const { hat, ownedHats, background, set, buyHat, coins } = useApp();
+  const { hat, ownedHats, ownedBackgrounds, background, set, buyHat, buyBackground, coins } = useApp();
 
   const y = useSharedValue(0);
   const drag = Gesture.Pan()
@@ -87,10 +98,12 @@ export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBough
   const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
 
   const isSelected = (it: Item) => (it.kind === 'hat' && it.ref === hat) || (it.kind === 'bg' && it.ref === background);
-  const isOwned = (it: Item) => it.kind === 'bg' || (it.kind === 'hat' && ownedHats.includes(it.ref as HatId));
+  const isOwned = (it: Item) =>
+    (it.kind === 'bg' && ownedBackgrounds.includes(it.ref as BackgroundId)) ||
+    (it.kind === 'hat' && ownedHats.includes(it.ref as HatId));
 
   const onItem = (it: Item) => {
-    if (it.kind === 'bg') return set({ background: it.ref as BackgroundId });
+    if (it.kind === 'bg' && isOwned(it)) return set({ background: it.ref as BackgroundId });
     if (it.kind === 'hat' && isOwned(it)) return set({ hat: it.ref as HatId });
     setBuying(it);
   };
@@ -148,14 +161,16 @@ export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBough
                             style={
                               it.kind === 'bg' || (it.kind === 'locked' && tab === 'Background')
                                 ? StyleSheet.absoluteFill
-                                : { width: 79, height: 61 }
+                                : it.ref === 'viking' || it.ref === 'antlers'
+                                  ? { width: 79, height: 61 }
+                                  : { width: 80, height: 80 }
                             }
                             contentFit={it.kind === 'bg' || tab === 'Background' ? 'cover' : 'contain'}
                           />
                         )}
                         {locked && (
                           <View style={styles.lock}>
-                            <Lock size={11} color={palette.gray500} strokeWidth={2.5} />
+                            <LockIcon color={it.kind === 'bg' ? '#FFFFFF' : palette.gray400} />
                           </View>
                         )}
                       </View>
@@ -174,11 +189,16 @@ export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBough
           coins={coins}
           onClose={() => setBuying(null)}
           onBuy={() => {
-            const ok = buying.ref ? buyHat(buying.ref as HatId, buying.price ?? 0) : false;
+            const isBg = buying.kind === 'bg';
+            const ok = !buying.ref
+              ? false
+              : isBg
+                ? buyBackground(buying.ref as BackgroundId, buying.price ?? 0)
+                : buyHat(buying.ref as HatId, buying.price ?? 0);
             if (ok) {
               haptic.success();
-              setTab('Hat');
-              onBought();
+              if (!isBg) setTab('Hat');
+              onBought(isBg ? 'bg' : 'hat');
             }
             setBuying(null);
           }}
@@ -267,9 +287,13 @@ function BuyPopup({
           <Image source={img.coinBig} style={{ width: 36, height: 36 }} />
           <Txt v="displayMdSemi">{item.price}</Txt>
         </View>
-        <View style={styles.preview}>
-          <Image source={item.image} style={{ width: 120, height: 93 }} contentFit="contain" />
-        </View>
+        {item.kind === 'bg' ? (
+          <Image source={item.image} style={styles.previewBg} contentFit="cover" />
+        ) : (
+          <View style={styles.preview}>
+            <Image source={item.image} style={{ width: 120, height: 93 }} contentFit="contain" />
+          </View>
+        )}
         <Button label={enough ? 'Buy now' : 'Not enough coins'} onPress={onBuy} disabled={!enough} />
       </Animated.View>
     </View>
@@ -358,7 +382,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: palette.gray100,
   },
-  lock: { position: 'absolute', top: 6, right: 6 },
+  // Figma "Lock" icon: 16×16 at (88.5, 4) inside the 109px tile
+  lock: { position: 'absolute', top: 4, right: 4.5 },
   popup: {
     position: 'absolute',
     top: 188,
@@ -381,6 +406,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 2,
   },
+  previewBg: { alignSelf: 'center', width: 200, height: 200, borderRadius: 16, marginVertical: 24 },
   preview: {
     alignSelf: 'center',
     width: 200,

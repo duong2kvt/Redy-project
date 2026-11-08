@@ -108,8 +108,8 @@ export default function Home() {
       {store && (
         <StoreSheet
           onClose={() => setStore(false)}
-          onBought={() => {
-            setHatDrop((n) => n + 1);
+          onBought={(kind) => {
+            if (kind === 'hat') setHatDrop((n) => n + 1);
             setTimeout(() => setToast('Purchase success'), 150);
           }}
         />

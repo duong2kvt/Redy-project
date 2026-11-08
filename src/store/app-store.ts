@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import type { BackgroundId, HatId } from './catalog';
+
 export type Gender = 'female' | 'male' | 'other';
 export type Activity = 'none' | 'light' | 'moderate' | 'high';
 
@@ -14,8 +16,7 @@ export type Meal = {
   time: string;
 };
 
-export type HatId = 'none' | 'antlers' | 'viking';
-export type BackgroundId = 'home' | 'garden' | 'beach';
+export type { BackgroundId, HatId };
 
 type State = {
   // profile
@@ -43,6 +44,7 @@ type State = {
 
   // pet customisation
   ownedHats: HatId[];
+  ownedBackgrounds: BackgroundId[];
   hat: HatId;
   background: BackgroundId;
 
@@ -52,6 +54,7 @@ type State = {
   addWater: () => void;
   completeFirstMealReward: () => void;
   buyHat: (hat: HatId, price: number) => boolean;
+  buyBackground: (bg: BackgroundId, price: number) => boolean;
   reset: () => void;
 };
 
@@ -77,6 +80,7 @@ const initial = {
   coins: 179,
   firstMealRewarded: false,
   ownedHats: ['none', 'antlers'] as HatId[],
+  ownedBackgrounds: ['home'] as BackgroundId[],
   hat: 'none' as HatId,
   background: 'home' as BackgroundId,
 } satisfies Partial<State>;
@@ -96,6 +100,12 @@ export const useApp = create<State>((set, get) => ({
     const s = get();
     if (s.coins < price) return false;
     set({ coins: s.coins - price, ownedHats: [...s.ownedHats, hat], hat });
+    return true;
+  },
+  buyBackground: (bg, price) => {
+    const s = get();
+    if (s.coins < price || s.ownedBackgrounds.includes(bg)) return false;
+    set({ coins: s.coins - price, ownedBackgrounds: [...s.ownedBackgrounds, bg], background: bg });
     return true;
   },
   reset: () => set({ ...initial }),

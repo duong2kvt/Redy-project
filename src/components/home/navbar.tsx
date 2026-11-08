@@ -131,6 +131,8 @@ export function NavBar({
 
 // Figma "Union" (247×279): rounded rect r32 (h 223.5) + concave fillets + ring (r≈24.5) around the button.
 const MENU_W = 247;
+/** x of the ring's centre inside the Union shape (Figma: ellipse at 163.5 + 24 − 71). */
+const RING_CX = 116.5;
 const MENU_H = 279;
 const MENU_PATH = [
   'M32 0 H215 A32 32 0 0 1 247 32 V191.5 A32 32 0 0 1 215 223.5',
@@ -185,7 +187,9 @@ const styles = StyleSheet.create({
     backgroundColor: palette.tomato500,
   },
   menuWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  menu: { width: MENU_W, height: MENU_H },
+  // The ring is not in the middle of the Union shape (x=116.5 of 247, like Figma),
+  // so shift the panel until the ring sits exactly over the centred button.
+  menu: { width: MENU_W, height: MENU_H, transform: [{ translateX: MENU_W / 2 - RING_CX }] },
   menuItem: { position: 'absolute', left: 34, width: 180, height: 72, alignItems: 'center', justifyContent: 'center' },
   sep: { position: 'absolute', left: 34, width: 180, height: 1, backgroundColor: 'rgba(247,247,247,0.1)' },
   closeWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },

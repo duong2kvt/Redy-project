@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
+  FadeIn,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -13,7 +14,10 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { haptic } from '@/components/ui/primitives';
+
+import { Eyelids } from './eyelids';
 import { useApp } from '@/store/app-store';
+import { getBackground, getHat } from '@/store/catalog';
 import { img } from '@/theme/assets';
 
 export const HERO_H = 332;
@@ -21,20 +25,37 @@ export const HERO_H = 332;
 /** Home scene — sky + illustrated objects + Redy (Character stand) + equipped hat. */
 export function HomeHero({ hatDrop = 0, jump: jumpSignal = 0 }: { hatDrop?: number; jump?: number }) {
   const hat = useApp((s) => s.hat);
+  const worn = getHat(hat);
   const background = useApp((s) => s.background);
+  const scene = getBackground(background);
 
-  // idle breathing
-  const b = useSharedValue(0);
   // tap → jump
   const jy = useSharedValue(0);
   const sq = useSharedValue(1);
   // hat drop-in
   const hy = useSharedValue(0);
   const ho = useSharedValue(1);
-  // falling leaves
+  // eyelids: 0 open → 1 closed
+  const lidL = useSharedValue(0);
+  const lidR = useSharedValue(0);
+  // Idle: Redy stands still and just blinks now and then (random 2.5–5.5 s, sometimes a double blink).
   useEffect(() => {
-    b.set(withRepeat(withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.quad) }), -1, true));
-  }, [b]);
+    let t: ReturnType<typeof setTimeout>;
+    const blinkOnce = () =>
+      withSequence(
+        withTiming(1, { duration: 70, easing: Easing.in(Easing.quad) }),
+        withDelay(50, withTiming(0, { duration: 120, easing: Easing.out(Easing.quad) })),
+      );
+    const loop = () => {
+      const double = Math.random() < 0.25;
+      const make = () => (double ? withSequence(blinkOnce(), withDelay(90, blinkOnce())) : blinkOnce());
+      lidL.set(make());
+      lidR.set(make());
+      t = setTimeout(loop, 2500 + Math.random() * 3000);
+    };
+    t = setTimeout(loop, 1200);
+    return () => clearTimeout(t);
+  }, [lidL, lidR]);
 
   useEffect(() => {
     if (!hatDrop) return;
@@ -54,6 +75,8 @@ export function HomeHero({ hatDrop = 0, jump: jumpSignal = 0 }: { hatDrop?: numb
         withSpring(0, { damping: 6 }),
       ),
     );
+    lidL.set(withSequence(withTiming(1, { duration: 80 }), withDelay(380, withTiming(0, { duration: 140 }))));
+    lidR.set(withSequence(withTiming(1, { duration: 80 }), withDelay(380, withTiming(0, { duration: 140 }))));
     sq.set(
       withSequence(
         withTiming(1.08, { duration: 200 }),
@@ -69,43 +92,55 @@ export function HomeHero({ hatDrop = 0, jump: jumpSignal = 0 }: { hatDrop?: numb
   }, [jumpSignal]);
 
   const body = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: jy.value },
-      { scaleY: (1 + 0.02 * b.value) * sq.value },
-      { scaleX: (1 - 0.01 * b.value) * (2 - sq.value) },
-    ],
+    transform: [{ translateY: jy.value }, { scaleY: sq.value }, { scaleX: 2 - sq.value }],
     transformOrigin: 'bottom',
   }));
   const hatStyle = useAnimatedStyle(() => ({
     opacity: ho.value,
-    transform: [{ translateY: hy.value + -4 * b.value }],
+    transform: [{ translateY: hy.value }],
   }));
 
   return (
     <View style={styles.hero} pointerEvents="box-none">
-      {background === 'home' ? (
-        <>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#A1E6DF', height: 263 }]} />
-          <Image source={img.homeObjects} style={{ position: 'absolute', top: 0, left: 0, width: 375, height: 1459 }} />
-        </>
-      ) : (
-        <Image
-          source={background === 'garden' ? img.bgGarden : img.thumbBeach}
-          style={{ position: 'absolute', top: 0, left: 0, width: 375, height: 375 }}
-          contentFit="cover"
-        />
-      )}
-      <Leaves />
+      {/* scene cross-fades when a new background is equipped */}
+      <Animated.View
+        key={background}
+        entering={FadeIn.duration(400)}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none">
+        {background === 'home' ? (
+          <>
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: '#A1E6DF', height: 263 }]} />
+            <Image
+              source={img.homeObjects}
+              style={{ position: 'absolute', top: 0, left: 0, width: 375, height: 1459 }}
+            />
+          </>
+        ) : (
+          <>
+            {/* floor colour continues the stage below the square artwork */}
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: scene.floor }]} />
+            <Image
+              source={scene.image}
+              style={{ position: 'absolute', top: 0, left: 0, width: 375, height: 375 }}
+              contentFit="cover"
+            />
+          </>
+        )}
+      </Animated.View>
+      {background === 'home' && <Leaves />}
       <View pointerEvents="none" style={{ position: 'absolute', left: 47, top: 52, width: 280, height: 280 }}>
         <Animated.View style={body}>
           <Image source={img.mascotStand} style={{ width: 280, height: 280 }} />
-          {hat !== 'none' && (
+          <Eyelids left={lidL} right={lidR} />
+          {worn.worn && (
             <Animated.View
-              style={[hat === 'viking' ? styles.hatViking : styles.hatAntlers, hatStyle]}
+              key={worn.id}
+              style={[{ position: 'absolute', left: worn.worn.left, top: worn.worn.top }, hatStyle]}
               pointerEvents="none">
               <Image
-                source={hat === 'viking' ? img.hatVikingWorn : img.hatAntlers}
-                style={hat === 'viking' ? { width: 129, height: 90 } : { width: 128, height: 88 }}
+                source={worn.wornImage ?? worn.image}
+                style={{ width: worn.worn.width, height: worn.worn.height }}
                 contentFit="contain"
               />
             </Animated.View>
@@ -162,6 +197,4 @@ function Leaf({ x, d, dur }: { x: number; d: number; dur: number }) {
 
 const styles = StyleSheet.create({
   hero: { position: 'absolute', top: 0, left: 0, right: 0, height: 1459 },
-  hatViking: { position: 'absolute', left: 78, top: -15 },
-  hatAntlers: { position: 'absolute', left: 76, top: -22 },
 });
