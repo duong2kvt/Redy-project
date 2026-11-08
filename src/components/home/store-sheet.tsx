@@ -168,6 +168,8 @@ export function StoreSheet({ onClose, onBought }: { onClose: () => void; onBough
                             contentFit={it.kind === 'bg' || tab === 'Background' ? 'cover' : 'contain'}
                           />
                         )}
+                        {/* Figma "Item Store" state=locked: image dimmed by a 40% black overlay + white lock */}
+                        {locked && it.kind === 'bg' && <View style={[StyleSheet.absoluteFill, styles.lockedDim]} />}
                         {locked && (
                           <View style={styles.lock}>
                             <LockIcon color={it.kind === 'bg' ? '#FFFFFF' : palette.gray400} />
@@ -384,6 +386,7 @@ const styles = StyleSheet.create({
   },
   // Figma "Lock" icon: 16×16 at (88.5, 4) inside the 109px tile
   lock: { position: 'absolute', top: 4, right: 4.5 },
+  lockedDim: { backgroundColor: 'rgba(0,0,0,0.4)' },
   popup: {
     position: 'absolute',
     top: 188,

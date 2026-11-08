@@ -19,18 +19,20 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Button, PressableScale, ProgressBar, Txt, haptic, useInsets } from '@/components/ui/primitives';
-import { useApp } from '@/store/app-store';
+import { MEAL_REWARD, useApp } from '@/store/app-store';
 import { img } from '@/theme/assets';
 import { colors, palette } from '@/theme/tokens';
 
 /**
  * Reward sequence from the prototype:
- * "Reeward" —0.8s→ "reward ->" (bar fills, 600ms) —0.6s→ "reward +" (+3 coins, 400ms)
+ * "Reeward" —0.8s→ "reward ->" (bar fills, 600ms) —0.6s→ "reward +" (+100 coins, 400ms)
  * —0.8s→ "reward +" with Next (300ms).
  */
 export default function Reward() {
   const insets = useInsets();
-  const complete = useApp((s) => s.completeFirstMealReward);
+  const complete = useApp((s) => s.rewardMealLogged);
+  // decided on mount: the very first logged meal unlocks the "First start" badge
+  const [isFirst] = useState(() => !useApp.getState().firstMealRewarded);
   const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function Reward() {
             exiting={FadeOut.duration(250)}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
             <Txt v="display2xl" style={{ fontSize: 64, lineHeight: 70 }}>
-              +3
+              +{MEAL_REWARD}
             </Txt>
             <Animated.View style={coin}>
               <Image source={img.coinBig} style={{ width: 80, height: 80 }} />
@@ -98,10 +100,10 @@ export default function Reward() {
           <Image source={img.badge} style={{ width: 96, height: 96 }} />
         </Animated.View>
         <Txt v="textLgSemi" style={{ marginTop: 16 }}>
-          First start
+          {isFirst ? 'First start' : 'Meal logged'}
         </Txt>
         <Txt v="textLg" color={palette.gray400}>
-          Log your first meal
+          {isFirst ? 'Log your first meal' : 'Great job keeping track!'}
         </Txt>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, alignSelf: 'stretch' }}>
           <ProgressBar
@@ -126,7 +128,7 @@ export default function Reward() {
       {stage === 3 && (
         <Animated.View entering={FadeInDown} style={{ alignItems: 'center', marginTop: 24 }}>
           <Txt v="textMd" color={palette.gray600}>
-            +3 coins added to your wallet
+            +{MEAL_REWARD} coins added to your wallet
           </Txt>
         </Animated.View>
       )}

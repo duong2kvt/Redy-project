@@ -2,6 +2,9 @@ import { create } from 'zustand';
 
 import type { BackgroundId, HatId } from './catalog';
 
+/** Coins earned every time the user logs a meal. */
+export const MEAL_REWARD = 100;
+
 export type Gender = 'female' | 'male' | 'other';
 export type Activity = 'none' | 'light' | 'moderate' | 'high';
 
@@ -52,7 +55,8 @@ type State = {
   toggleIn: (key: 'eatingContext' | 'allergies' | 'habitChanges', value: string) => void;
   logMeal: (meal: Meal) => void;
   addWater: () => void;
-  completeFirstMealReward: () => void;
+  /** Called once per logged meal (reward screen): +MEAL_REWARD coins; the first meal also starts the streak. */
+  rewardMealLogged: () => void;
   buyHat: (hat: HatId, price: number) => boolean;
   buyBackground: (bg: BackgroundId, price: number) => boolean;
   reset: () => void;
@@ -80,7 +84,8 @@ const initial = {
   coins: 179,
   firstMealRewarded: false,
   ownedHats: ['none', 'antlers'] as HatId[],
-  ownedBackgrounds: ['home'] as BackgroundId[],
+  // first six backgrounds come free; beach, school & heaven must be bought
+  ownedBackgrounds: ['home', 'halloween', 'christmas', 'tet', 'valentine', 'music'] as BackgroundId[],
   hat: 'none' as HatId,
   background: 'home' as BackgroundId,
 } satisfies Partial<State>;
@@ -94,8 +99,11 @@ export const useApp = create<State>((set, get) => ({
   },
   logMeal: (meal) => set((s) => ({ meals: [...s.meals, meal] })),
   addWater: () => set((s) => ({ waterGlasses: Math.min(10, s.waterGlasses + 1) })),
-  completeFirstMealReward: () =>
-    set((s) => (s.firstMealRewarded ? {} : { firstMealRewarded: true, coins: s.coins + 3, streak: s.streak + 1 })),
+  rewardMealLogged: () =>
+    set((s) => ({
+      coins: s.coins + MEAL_REWARD,
+      ...(s.firstMealRewarded ? {} : { firstMealRewarded: true, streak: s.streak + 1 }),
+    })),
   buyHat: (hat, price) => {
     const s = get();
     if (s.coins < price) return false;

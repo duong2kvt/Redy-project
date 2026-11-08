@@ -14,8 +14,8 @@ export type BackgroundItem = {
 
 /**
  * Pet-shop backgrounds (store → Background tab, Figma 5011:18353 / 5375:7594).
- * "home" is the default scene and is owned from the start; every other one is
- * bought with coins, exactly like the hats.
+ * The first six are owned from the start (state Default / selected); beach,
+ * school and heaven are locked and bought with coins, exactly like the hats.
  */
 export const BACKGROUNDS: BackgroundItem[] = [
   { id: 'home', name: 'Lantern Garden', price: 0, image: img.thumbHome, floor: '#305C73' },
